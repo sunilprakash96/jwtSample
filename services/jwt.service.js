@@ -10,4 +10,4 @@ const getUser = (email) => {
     }
 }
 
-module.exports = getUser
+module.exports = { getUser }

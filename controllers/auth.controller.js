@@ -6,7 +6,7 @@ const login = async (req, res) => {
         const { email, password } = req.body
         const user = await service.getUser(email)
         if (user.password === password) {
-            const token = await jwt.sign(user, "pass", '5m')
+            const token = await jwt.sign(user, "pass", { expiresIn: '2m' })
             res.status(200).send(token)
         }
         else {
@@ -14,7 +14,7 @@ const login = async (req, res) => {
         }
     }
     catch {
-        res.status(500).send({ message: "Internal Server Error"})
+        res.status(500).send({ message: "Login: Internal Server Error"})
     }
 }
 
@@ -29,19 +29,16 @@ const getUser = async (req, res) => {
     }
 }
 
-const auth = async (req, res) => {
-    try {
-        const [ token ] = req.header
-        const isTokenValid = jwt.verify(token , 'pass')
-        if(isTokenValid) {
-            next()
-        }
-        else {
-            res.status(401).send({ message: "Invalid Token"})
-        }
+const auth = (req, res, next) => {
+    const token = req.headers['token']
+    if(!token) {
+        return res.status(401).send({ message: 'Acces Denied' })
     }
-    catch {
-        res.status(500).send({ message: "Internal Server Error"})
+    try {
+        jwt.verify(token, 'pass')
+        next()
+    } catch (e) {
+        res.status(401).send({ message: 'Unauthorized' })
     }
 }
 
